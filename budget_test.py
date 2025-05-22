@@ -36,7 +36,7 @@ categories = [placeholder] + [
     "Car Yearly (Maintenance, Registration)",
     "Health Misc"
 ]
-category = st.selectbox("Select Budget Category", categories, index=0)
+category = st.radio("Select Budget Category", categories, index=0)
 
 # ─── 4. Show form fields once a real category is chosen ────────────────────────
 if category != placeholder:
