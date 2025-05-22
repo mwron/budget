@@ -1,0 +1,115 @@
+import streamlit as st
+import pandas as pd
+
+# ─── 0. Password protection ────────────────────────────────────────────────────
+# Define a password in Streamlit secrets: add PASSWORD = "your_password_here" under [secrets] in .streamlit/secrets.toml
+pwd = st.text_input("Enter password", type="password")
+if "PASSWORD" not in st.secrets:
+    st.error("App not configured. Please set PASSWORD in your Streamlit secrets.")
+    st.stop()
+if pwd != st.secrets["PASSWORD"]:
+    st.warning("🔒 Unauthorized. Please enter the correct password.")
+    st.stop()
+
+# ─── 1. Initialize session state DataFrame ───────────────────────────────────
+if 'budget' not in st.session_state:
+    st.session_state.budget = pd.DataFrame(columns=[
+        'Date', 'Category', 'Subsegment', 'Amount', 'Notes'
+    ])
+
+st.title("Budget Entry Form")
+
+# ─── 2. Date selector ─────────────────────────────────────────────────────────
+entry_date = st.date_input("Select Date")
+
+# ─── 3. Category dropdown (with updated categories) ─────────────────────────
+placeholder = "-- Select Category --"
+categories = [placeholder] + [
+    "Food and Drink",
+    "Groceries & Home Essentials",
+    "Shopping / Self Care / Gym",
+    "Entertainment / Memberships",
+    "Gifts / Donations / Balikbayan",
+    "Home and Taxes",
+    "Short Travel (Gas, Car Wash, Transit within SD)",
+    "Travel (non-driving, lodging, outside SD)",
+    "Car Yearly (Maintenance, Registration)",
+    "Health Misc"
+]
+category = st.selectbox("Select Budget Category", categories, index=0)
+
+# ─── 4. Show form fields once a real category is chosen ────────────────────────
+if category != placeholder:
+    subsegments = {
+        "Food and Drink": [
+            "Eating Out / Happy Hour ($20 -> $120)",
+            "Small meal / Coffee / Drink (<$20)",
+            "Big Dinner / Treating Others (<$120)"
+        ],
+        "Shopping / Self Care / Gym": [
+            "Gym", "Amazon", "Clothes", "Nails & Hair", "Dry Cleaners", "Other"
+        ],
+        "Short Travel (Gas, Car Wash, Transit within SD)": [
+            "Gas", "Lyft / Uber", "Public Transit", "Car Wash", "Parking", "Other"
+        ],
+        "Entertainment / Memberships": [
+            "Spotify", "SiriusXM", "Apple Storage", "Event Tickets", "Other"
+        ],
+        "Travel (non-driving, lodging, outside SD)": [
+            "Flight", "Hotel / AirBnb / Lodging", "Long Train",
+            "Event", "Food", "Travel Gear Misc", "Other"
+        ],
+        "Car Yearly (Maintenance, Registration)": [
+            "Oil Change", "Car Insurance", "Registration",
+            "Tires", "Smog Check", "Other"
+        ],
+        "Health Misc": [
+            "Prescriptions", "Emergency Room", "CoPay",
+            "Glasses / Contacts", "Other"
+        ],
+        "Home and Taxes": [
+            "Rent / Home Help", "Income Tax", "Insurance", "Other"
+        ]
+        # Groceries & Gifts have no predefined subsegments
+    }
+
+    opts = subsegments.get(category, []).copy()
+    if opts:
+        if 'Other' not in opts:
+            opts.append('Other')
+        subcat = st.radio("Select Subsegment", opts)
+        if subcat == 'Other':
+            subcat = st.text_input("Please specify subsegment").strip()
+    else:
+        subcat = "" # no subsegment for this category
+
+    # Transaction amount & notes
+    amount_input = st.text_input(
+        "Transaction Total", placeholder="Enter amount (e.g. 42.50)"
+    ).strip()
+    notes = st.text_area("Additional Notes").strip()
+
+    if st.button("Submit Entry"):
+        try:
+            amount = float(amount_input)
+        except ValueError:
+            st.error("⚠️ Please enter a valid number for the amount.")
+        else:
+            new_entry = {
+                'Date': entry_date,
+                'Category': category,
+                'Subsegment': subcat,
+                'Amount': amount,
+                'Notes': notes
+            }
+            st.session_state.budget = pd.concat(
+                [st.session_state.budget, pd.DataFrame([new_entry])],
+                ignore_index=True
+            )
+            st.success("Entry added to budget dataset!")
+
+# ─── 5. Display current entries ───────────────────────────────────────────────
+st.subheader("Current Budget Entries")
+st.dataframe(st.session_state.budget)
+
+#in terminal: streamlit run budget_test.py
