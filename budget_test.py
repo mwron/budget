@@ -121,7 +121,7 @@ if category != placeholder:
             ignore_index=True
         )
         # Reset only date and category
-        st.session_state.entry_date = date.today()
+        st.session_state.entry_date = datetime.now(pacific).date()
         st.session_state.category = placeholder
         # Clear the other inputs (optional)
         st.session_state.subcat = None
