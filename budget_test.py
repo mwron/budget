@@ -3,7 +3,6 @@ import pandas as pd
 from datetime import date, datetime
 import gspread
 from google.oauth2.service_account import Credentials
-from googleapiclient.discovery import build
 
 # ─── 0. Password protection ────────────────────────────────────────────────────
 pwd = st.text_input("Enter password", type="password")
@@ -80,57 +79,8 @@ if category != placeholder:
         scope = ['https://www.googleapis.com/auth/spreadsheets']
         creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
         client = gspread.authorize(creds)
-        sheet = client.open_by_url(st.secrets["SHEET_URL"])
-        worksheet = sheet.sheet1
-
-        worksheet.append_row(data, value_input_option='USER_ENTERED')
-
-        sheet_id = worksheet.id
-        service = build('sheets', 'v4', credentials=creds)
-
-        requests = [
-            {
-                "repeatCell": {
-                    "range": {
-                        "sheetId": sheet_id,
-                        "startColumnIndex": 0,
-                        "endColumnIndex": 1
-                    },
-                    "cell": {
-                        "userEnteredFormat": {
-                            "numberFormat": {
-                                "type": "DATE_TIME",
-                                "pattern": "yyyy-mm-ddThh:mm:ss"
-                            }
-                        }
-                    },
-                    "fields": "userEnteredFormat.numberFormat"
-                }
-            },
-            {
-                "repeatCell": {
-                    "range": {
-                        "sheetId": sheet_id,
-                        "startColumnIndex": 1,
-                        "endColumnIndex": 2
-                    },
-                    "cell": {
-                        "userEnteredFormat": {
-                            "numberFormat": {
-                                "type": "DATE",
-                                "pattern": "yyyy-mm-dd"
-                            }
-                        }
-                    },
-                    "fields": "userEnteredFormat.numberFormat"
-                }
-            }
-        ]
-
-        service.spreadsheets().batchUpdate(
-            spreadsheetId=sheet.id,
-            body={"requests": requests}
-        ).execute()
+        sheet = client.open_by_url(st.secrets["SHEET_URL"]).sheet1
+        sheet.append_row(data)
 
     def submit_and_reset():
         try:
@@ -139,8 +89,8 @@ if category != placeholder:
             st.error("⚠️ Invalid amount. Please enter a number.")
             return
         now = datetime.now(pacific)
-        ts = now.isoformat(timespec='seconds')
-        date_str = entry_date.isoformat()
+        ts = now.strftime("%m/%d/%Y %H:%M:%S")
+        date_str = entry_date.strftime("%m/%d/%Y")
         new_entry = [ts, date_str, category, subcat, amt, notes]
 
         st.session_state.budget.loc[len(st.session_state.budget)] = new_entry
