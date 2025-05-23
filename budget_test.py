@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from datetime import date
+from datetime import date, datetime
 
 # ─── 0. Password protection ────────────────────────────────────────────────────
 pwd = st.text_input("Enter password", type="password")
@@ -18,9 +18,18 @@ if 'budget' not in st.session_state:
     )
 
 # ─── 2. Ensure default values for entry_date and category ────────────────────
+try:
+    # Python 3.9+ standard library
+    from zoneinfo import ZoneInfo
+    pacific = ZoneInfo("America/Los_Angeles")
+except ImportError:
+    # fallback if zoneinfo data isn’t available; pip install pytz
+    import pytz
+    pacific = pytz.timezone("America/Los_Angeles")
+
 placeholder = "-- Select Category --"
 if 'entry_date' not in st.session_state:
-    st.session_state.entry_date = date.today()
+    st.session_state.entry_date = datetime.now(pacific).date()
 if 'category' not in st.session_state:
     st.session_state.category = placeholder
 
