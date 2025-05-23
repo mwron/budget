@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import date, datetime
 import gspread
 from google.oauth2.service_account import Credentials
+from googleapiclient.discovery import build
 
 # ─── 0. Password protection ────────────────────────────────────────────────────
 pwd = st.text_input("Enter password", type="password")
@@ -79,22 +80,31 @@ if category != placeholder:
         scope = ['https://www.googleapis.com/auth/spreadsheets']
         creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
         client = gspread.authorize(creds)
-        sheet = client.open_by_url(st.secrets["SHEET_URL"]).sheet1
-        sheet.append_row(data)
+        sheet = client.open_by_url(st.secrets["SHEET_URL"])
+        worksheet = sheet.sheet1
+        worksheet.append_row(data, value_input_option='USER_ENTERED')
 
     def submit_and_reset():
         try:
-            amt = float(amount_input)
+            amt = float(st.session_state.amount_input)
         except ValueError:
             st.error("⚠️ Invalid amount. Please enter a number.")
             return
+
         now = datetime.now(pacific)
-        ts = now.strftime("%m/%d/%Y %H:%M:%S")
-        date_str = entry_date.strftime("%m/%d/%Y")
-        new_entry = [ts, date_str, category, subcat, amt, notes]
+        ts = now.strftime("%Y-%m-%d %H:%M:%S")
+        date_str = st.session_state.entry_date.strftime("%Y-%m-%d")
+        new_entry = [ts, date_str, st.session_state.category, subcat, amt, st.session_state.notes]
 
         st.session_state.budget.loc[len(st.session_state.budget)] = new_entry
         append_to_gsheet(new_entry)
+
+        st.session_state.entry_date = datetime.now(pacific).date()
+        st.session_state.category = placeholder
+        st.session_state.amount_input = ""
+        st.session_state.notes = ""
+        st.session_state.subcat = None
+        st.session_state.other_subcat = ""
 
         st.success("Entry added to budget dataset and Google Sheet!")
 
