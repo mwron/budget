@@ -60,8 +60,8 @@ if category != placeholder:
     # Subsegment mapping
     subsegments_map = {
         "Food and Drink": [
-            "Eating Out / Happy Hour ($20 -> $120)",
             "Small meal / Coffee / Drink (<$20)",
+            "Eating Out / Happy Hour ($20 -> $120)",
             "Big Dinner / Treating Others (<$120)"
         ],
         "Groceries & Home Essentials": [],
@@ -81,7 +81,8 @@ if category != placeholder:
         opts.append("Other")
         subcat = st.radio(
             "Select Subsegment", options=opts,
-            key='subcat'
+            key='subcat',
+            format_func=lambda x: x.replace("$", r"\$")
         )
         if subcat == "Other":
             subcat = st.text_input(
