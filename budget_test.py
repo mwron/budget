@@ -53,7 +53,7 @@ category = st.radio("Select Budget Category", options=categories,
 # ─── 5. Subsegment and Inputs ──────────────────────────────────────────────────
 if category != placeholder:
     subsegments_map = {
-        "Food and Drink": ["Small meal / Coffee / Drink (<$20)", "Eating Out / Happy Hour ($20 -> $120)", "Big Dinner / Treating Others (<$120)"],
+        "Food and Drink": ["Small meal / Coffee / Drink (<$20)", "Eating Out / Happy Hour ($20 -> $120)", "Big Dinner / Treating Others (>$120)"],
         "Groceries & Home Essentials": [],
         "Shopping / Self Care / Gym": ["Gym", "Amazon", "Clothes", "Nails & Hair", "Dry Cleaners"],
         "Entertainment / Memberships": ["Spotify", "SiriusXM", "Apple Storage", "Event Tickets"],
